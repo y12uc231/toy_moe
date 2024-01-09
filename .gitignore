@@ -13,6 +13,7 @@ nohup.out
 *results*/
 **/.DS_Store
 **/data
+*.pt
 *test_trainer/
 *gsm_ft_e_5/
 *.history/

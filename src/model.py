@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn 
 
 # Model Definition 
@@ -17,4 +18,6 @@ class RNNLanguageModel(nn.Module):
     def init_state(self, batch_size):
         return (torch.zeros(self.lstm.num_layers,batch_size, self.lstm.hidden_size),
                 torch.zeros(self.lstm.num_layers,batch_size, self.lstm.hidden_size))
-    
+
+# MoE Model Definition
+

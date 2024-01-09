@@ -1,7 +1,12 @@
+import os
 import torch 
+from torch.utils.data import Dataset, DataLoader
+from tqdm import tqdm
+from tokenizer_prep import build_and_save_tokenizer, get_tokenizer, encode_text
+
 # Define Dataloader
 class LMDataset(Dataset):
-    def __init__(self, file_path, store_file_path,max_length = SEQUENCE_LENGTH):
+    def __init__(self, file_path, store_file_path,tokenizer, max_length):
         self.lines = []
         num_lines = 100000
         max_length_dataset = 0
@@ -11,7 +16,7 @@ class LMDataset(Dataset):
             with open(file_path, 'r', encoding='utf-8') as file:
                 for line in tqdm(file, desc = "Dataset Prep"):
                     line = "<sos>" + line.strip() + "<eos> "
-                    line,length_seq = encode_text(tokenizer, line)
+                    line,length_seq = encode_text(tokenizer, line, max_length)
                     if length_seq > max_length_dataset:
                         max_length_dataset = length_seq
                     self.lines.append(line)

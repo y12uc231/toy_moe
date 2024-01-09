@@ -22,7 +22,7 @@ from tokenizers.trainers import BpeTrainer
 from tokenizers.pre_tokenizers import ByteLevel
 from model import RNNLanguageModel
 from data_loader import LMDataset, collate_train_fn
-
+from tokenizer_prep import build_and_save_tokenizer, get_tokenizer, encode_text
 
 # Set the seed for PyTorch
 torch.manual_seed(7)
@@ -45,56 +45,16 @@ EPOCHS = 35
 SEQUENCE_LENGTH = 60
 MODEL_FILE_NAME = "moe_model.pth"
 SAVED_TOKENIZER_FILE = "tokenizer.json"
-TRAIN_FILE = f"train_{DIVISION}.txt"
-TEST_FILE = f"test_{DIVISION}.txt"
+TRAIN_FILE = f"../data/train_{DIVISION}.txt"
+TEST_FILE = f"../data/test_{DIVISION}.txt"
 SLICED_TRAIN_DATA_LOC = "train_{}.pt".format(SEQUENCE_LENGTH)
 SLICED_TEST_DATA_LOC = "test_{}.pt".format(SEQUENCE_LENGTH)
 
 
 
-#Tokenizer Builder
-def build_and_save_tokenizer(file_path, tokenizer_path):
-    tokenizer = Tokenizer(BPE(unk_token="<unk>"))
-    tokenizer.pre_tokenizer = ByteLevel()
-    trainer = BpeTrainer(special_tokens=["<unk>", "<sos>", "<eos>"])
-    with open(file_path, 'r', encoding='utf-8') as file:
-        lines = file.read().splitlines()
-    tokenizer.train_from_iterator(lines, trainer)
-    tokenizer.save(tokenizer_path)
-    return tokenizer
 
 
-
-# Define tokenizer 
-def get_tokenizer(tokenizer_fname=SAVED_TOKENIZER_FILE):
-    if os.path.exists(tokenizer_fname):
-        print("Tokenizer found!") 
-        tokenizer = Tokenizer.from_file(tokenizer_fname)
-        tokenizer.end_token = "<eos>"
-        tokenizer.end_token_id = tokenizer.token_to_id(tokenizer.end_token)
-        tokenizer.generation_start_token = "<sos>"
-        tokenizer.generation_start_token_id = tokenizer.token_to_id(tokenizer.generation_start_token)
-    else:
-        tokenizer = build_and_save_tokenizer(TRAIN_FILE, SAVED_TOKENIZER_FILE)
-        tokenizer.end_token = "<eos>"
-        tokenizer.end_token_id = tokenizer.token_to_id(tokenizer.end_token)
-        tokenizer.generation_start_token = "<sos>"
-        tokenizer.generation_start_token_id = tokenizer.token_to_id(tokenizer.generation_start_token)
-    return tokenizer
-
-def encode_text(tokenizer, text, max_length = SEQUENCE_LENGTH):
-    encoded = tokenizer.encode(text)
-    length_seq = len(encoded.ids[:])
-    encoded_ids = encoded.ids[:]
-    remaining = [tokenizer.end_token_id]
-    repeats_needed = SEQUENCE_LENGTH - length_seq
-    repeated_slice = remaining*repeats_needed
-    encoded_ids.extend(repeated_slice)
-    # print(f"Encoded sentence : {encoded_ids} \t", len(encoded_ids))
-    return torch.tensor(encoded_ids), length_seq
-
-
-tokenizer = get_tokenizer()
+tokenizer = get_tokenizer(TRAIN_FILE, SAVED_TOKENIZER_FILE)
 VOCAB_SIZE = tokenizer.get_vocab_size()
 print("Vocab Size : ", VOCAB_SIZE)
 END_TOKEN_ID = tokenizer.end_token_id
@@ -102,8 +62,8 @@ GENERATION_START_TOKEN_ID = tokenizer.generation_start_token_id
 
 
 # Prep dataloader
-train_dataset = LMDataset(TRAIN_FILE, SLICED_TRAIN_DATA_LOC)
-test_dataset = LMDataset(TEST_FILE, SLICED_TEST_DATA_LOC)
+train_dataset = LMDataset(TRAIN_FILE, SLICED_TRAIN_DATA_LOC, tokenizer,  max_length = SEQUENCE_LENGTH)
+test_dataset = LMDataset(TEST_FILE, SLICED_TEST_DATA_LOC, tokenizer, max_length = SEQUENCE_LENGTH)
 train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, collate_fn = collate_train_fn)
 test_dataloader = DataLoader(test_dataset, batch_size=1, collate_fn = collate_train_fn) 
 
