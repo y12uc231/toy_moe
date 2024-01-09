@@ -25,12 +25,12 @@ class TransformerExpertModel(nn.Module):
     def __init__(self, vocab_size, embed_size=768, nhead=12, num_layers=3):
         super(GPT2StackedDecoder, self).__init__()
 
-        self.embedding = nn.Embedding(vocab_size, d_model)
-        self.positional_embedding = nn.Embedding(512, d_model)  # Assuming maximum sequence length of 512
+        self.embedding = nn.Embedding(vocab_size, embed_size)
+        self.positional_embedding = nn.Embedding(512, embed_size)  # Assuming maximum sequence length of 512
         self.transformer_decoders = nn.ModuleList([
-            nn.TransformerDecoderLayer(d_model, nhead) for _ in range(num_layers)
+            nn.TransformerDecoderLayer(embed_size, nhead) for _ in range(num_layers)
         ])
-        self.fc = nn.Linear(d_model, vocab_size)
+        self.fc = nn.Linear(embed_size, vocab_size)
 
     def forward(self, x):
         seq_length = x.size(1)
@@ -64,12 +64,12 @@ class GPT2StackedDecoder(nn.Module):
     def __init__(self, vocab_size, embed_size=768, nhead=12, num_layers=12):
         super(GPT2StackedDecoder, self).__init__()
 
-        self.embedding = nn.Embedding(vocab_size, d_model)
-        self.positional_encoding = PositionalEncoding(d_model)
+        self.embedding = nn.Embedding(vocab_size, embed_size)
+        self.positional_encoding = PositionalEncoding(embed_size)
         self.transformer_decoders = nn.ModuleList([
-            nn.TransformerDecoderLayer(d_model, nhead) for _ in range(num_layers)
+            nn.TransformerDecoderLayer(embed_size, nhead) for _ in range(num_layers)
         ])
-        self.fc = nn.Linear(d_model, vocab_size)
+        self.fc = nn.Linear(embed_size, vocab_size)
 
     def forward(self, x):
         x = self.embedding(x)
