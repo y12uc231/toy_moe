@@ -69,7 +69,8 @@ test_dataloader = DataLoader(test_dataset, batch_size=1, collate_fn = collate_tr
 
     
 # Initialize the model
-model = RNNLanguageModel(VOCAB_SIZE, D_MODEL, DIM_FEEDFORWARD, NUM_HIDDEN_LAYERS)
+#model = RNNLanguageModel(VOCAB_SIZE, D_MODEL, DIM_FEEDFORWARD, NUM_HIDDEN_LAYERS)
+model = RNNLanguageModel(VOCAB_SIZE, D_MODEL) #, DIM_FEEDFORWARD, NUM_HIDDEN_LAYERS)
 
 
 # Load the state dictionary
