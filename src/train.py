@@ -20,7 +20,7 @@ from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from tokenizers.pre_tokenizers import ByteLevel
-from model import RNNLanguageModel,GPT2StackedDecoder
+from model import RNNExpertModel,GPT2StackedDecoder
 from data_loader import LMDataset, collate_train_fn
 from tokenizer_prep import build_and_save_tokenizer, get_tokenizer, encode_text
 
