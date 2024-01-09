@@ -20,7 +20,7 @@ from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from tokenizers.pre_tokenizers import ByteLevel
-from model import RNNLanguageModel
+from model import RNNLanguageModel,GPT2StackedDecoder
 from data_loader import LMDataset, collate_train_fn
 from tokenizer_prep import build_and_save_tokenizer, get_tokenizer, encode_text
 
@@ -70,7 +70,7 @@ test_dataloader = DataLoader(test_dataset, batch_size=1, collate_fn = collate_tr
     
 # Initialize the model
 #model = RNNLanguageModel(VOCAB_SIZE, D_MODEL, DIM_FEEDFORWARD, NUM_HIDDEN_LAYERS)
-model = RNNLanguageModel(VOCAB_SIZE, D_MODEL) #, DIM_FEEDFORWARD, NUM_HIDDEN_LAYERS)
+model = GPT2StackedDecoder(VOCAB_SIZE, D_MODEL) #, DIM_FEEDFORWARD, NUM_HIDDEN_LAYERS)
 
 
 # Load the state dictionary
