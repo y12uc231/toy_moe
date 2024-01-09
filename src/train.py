@@ -179,7 +179,8 @@ def evaluate(model, test_loader, device):
             state_h = state_h.to(device)
             state_c = state_c.to(device)
         
-            logits, _ = model(x, (state_h, state_c))
+            #logits, _ = model(x, (state_h, state_c))
+            logits = model(x) #, (state_h, state_c))
             predicted = torch.argmax(logits, dim=2)
             total_acc += (predicted == y).sum().item()
             total_count += y.numel()
