@@ -35,6 +35,7 @@ torch.backends.cudnn.benchmark = False
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Hyperparameters
+MODEL = "transformer"
 D_MODEL = 256
 DIVISION = "algebra__linear_1d"
 NUM_HIDDEN_LAYERS = 1
@@ -69,9 +70,10 @@ test_dataloader = DataLoader(test_dataset, batch_size=1, collate_fn = collate_tr
 
     
 # Initialize the model
-#model = RNNLanguageModel(VOCAB_SIZE, D_MODEL, DIM_FEEDFORWARD, NUM_HIDDEN_LAYERS)
-
-model = GPT2StackedDecoder(VOCAB_SIZE, D_MODEL, D_MODEL/64) #, DIM_FEEDFORWARD, NUM_HIDDEN_LAYERS)
+if MODEL == "rnn":
+    model = RNNLanguageModel(VOCAB_SIZE, D_MODEL, DIM_FEEDFORWARD, NUM_HIDDEN_LAYERS)
+else:
+    model = GPT2StackedDecoder(VOCAB_SIZE, D_MODEL, D_MODEL/64) #, DIM_FEEDFORWARD, NUM_HIDDEN_LAYERS)
 
 
 # Load the state dictionary
@@ -91,13 +93,19 @@ optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 def generate_text(model, start_seq, max_length, tokenizer, target, device):
     model.eval()
     words_ids = tokenizer.encode(start_seq).ids[:]
-    state_h, state_c = model.init_state(1)
-    state_h = state_h.to(device)
-    state_c = state_c.to(device)
+    if MODEL == "rnn":
+        state_h, state_c = model.init_state(1)
+        state_h = state_h.to(device)
+        state_c = state_c.to(device)
+        
     
     for i in range(max_length):
         x = torch.tensor(words_ids).unsqueeze(0).to(device) 
-        logits, (state_h, state_c) = model(x, (state_h, state_c))
+        if MODEL == "rnn":
+            logits, (state_h, state_c) = model(x, (state_h, state_c))
+        else:
+            logits = model(x)
+
         prediction = torch.argmax(logits[:, -1, :], dim=1).item()
         words_ids.append(prediction)
         if prediction == tokenizer.end_token_id:
@@ -132,22 +140,27 @@ def train(model, train_loader, criterion, optimizer, num_epochs, test_loader, de
     model.train()
     accuracy_epochs = []
     for epoch in range(num_epochs):
-        state_h, state_c = model.init_state(BATCH_SIZE)
-        state_h = state_h.to(device)
-        state_c = state_c.to(device)
-        
+        if MODEL == "rnn":
+            state_h, state_c = model.init_state(BATCH_SIZE)
+            state_h = state_h.to(device)
+            state_c = state_c.to(device)
+            
         for batch, (x, y) in enumerate(tqdm(train_loader)):
 #             print(x.shape)
             if x.size(0) < BATCH_SIZE:
-                state_h, state_c = model.init_state(x.size(0))
-                state_h = state_h.to(device)
-                state_c = state_c.to(device)
+                if MODEL == "rnn":
+                    state_h, state_c = model.init_state(x.size(0))
+                    state_h = state_h.to(device)
+                    state_c = state_c.to(device)
                 
             optimizer.zero_grad()
             x = x.to(device)
             y = y.to(device)
             
-            logits, (state_h, state_c) = model(x, (state_h, state_c))
+            if MODEL == "rnn":
+                logits, (state_h, state_c) = model(x, (state_h, state_c))
+            else:
+                logits= model(x) #, (state_h, state_c))    
             loss = criterion(logits.transpose(1, 2), y)
             
             state_h = state_h.detach()
@@ -176,12 +189,13 @@ def evaluate(model, test_loader, device):
         for idx, (x, y) in enumerate(tqdm(test_loader)):
             x = x.to(device)
             y = y.to(device)
-            state_h, state_c = model.init_state(x.size(0))
-            state_h = state_h.to(device)
-            state_c = state_c.to(device)
-        
-            #logits, _ = model(x, (state_h, state_c))
-            logits = model(x) #, (state_h, state_c))
+            if MODEL == "rnn":
+                state_h, state_c = model.init_state(x.size(0))
+                state_h = state_h.to(device)
+                state_c = state_c.to(device)
+                logits, _ = model(x, (state_h, state_c))
+            else:
+                logits = model(x) #, (state_h, state_c))
             predicted = torch.argmax(logits, dim=2)
             total_acc += (predicted == y).sum().item()
             total_count += y.numel()

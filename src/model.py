@@ -6,7 +6,7 @@ import torch.nn.functional as F
 # Model Definition 
 class RNNExpertModel(nn.Module):
     def __init__(self, vocab_size, embed_size, hidden_size, num_layers):
-        super(RNNLanguageModel, self).__init__()
+        super(RNNExpertModel, self).__init__()
         self.embedding = nn.Embedding(vocab_size, embed_size)
         self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True)
         self.fc = nn.Linear(hidden_size, vocab_size)
@@ -24,7 +24,7 @@ class RNNExpertModel(nn.Module):
 # Stacked Decoder with learnable position embedding
 class TransformerExpertModel(nn.Module):
     def __init__(self, vocab_size, embed_size=768, nhead=12, num_layers=3):
-        super(GPT2StackedDecoder, self).__init__()
+        super(TransformerExpertModel, self).__init__()
 
         self.embedding = nn.Embedding(vocab_size, embed_size)
         self.positional_embedding = nn.Embedding(512, embed_size)  # Assuming maximum sequence length of 512
