@@ -72,12 +72,12 @@ class GPT2StackedDecoder(nn.Module):
         ])
         self.fc = nn.Linear(embed_size, vocab_size)
 
-    def forward(self, x):
+    def forward(self, x, memory = None):
         x = self.embedding(x)
         x = x + self.positional_encoding(x)
 
         for layer in self.transformer_decoders:
-            x = layer(x)
+            x = layer(x, memory)
 
         output = self.fc(x)
         return output
