@@ -35,7 +35,7 @@ torch.backends.cudnn.benchmark = False
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Hyperparameters
-D_MODEL = 512
+D_MODEL = 256
 DIVISION = "algebra__linear_1d"
 NUM_HIDDEN_LAYERS = 1
 DIM_FEEDFORWARD = 512
@@ -70,7 +70,8 @@ test_dataloader = DataLoader(test_dataset, batch_size=1, collate_fn = collate_tr
     
 # Initialize the model
 #model = RNNLanguageModel(VOCAB_SIZE, D_MODEL, DIM_FEEDFORWARD, NUM_HIDDEN_LAYERS)
-model = GPT2StackedDecoder(VOCAB_SIZE, D_MODEL) #, DIM_FEEDFORWARD, NUM_HIDDEN_LAYERS)
+
+model = GPT2StackedDecoder(VOCAB_SIZE, D_MODEL, D_MODEL/64) #, DIM_FEEDFORWARD, NUM_HIDDEN_LAYERS)
 
 
 # Load the state dictionary
